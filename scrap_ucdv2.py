@@ -3,6 +3,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium_recaptcha_solver import RecaptchaSolver
 import pickle
 import random
 import time
@@ -58,6 +59,31 @@ except Exception as e:
     print(f"❌ Failed to load or validate config.toml: {e}")
     sys.exit()
 
+def handle_captcha():
+    try:
+        # Wait for CAPTCHA iframe to load
+        WebDriverWait(driver, 20).until(
+            EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR, "iframe[title*='Cloudflare Challenge']"))
+        )
+        
+        # Initialize solver
+        solver = RecaptchaSolver(driver=driver)
+        
+        # Click the CAPTCHA checkbox
+        solver.click_recaptcha_v2(
+            iframe=driver.find_element(By.CSS_SELECTOR, "iframe[title*='Cloudflare Challenge']"),
+            # For Cloudflare Turnstile you might need:
+            # solver.solve_turnstile(sitekey='SITE_KEY', page_url=driver.current_url)
+        )
+        
+        driver.switch_to.default_content()
+        return True
+    except Exception as e:
+        print(f"CAPTCHA handling failed: {e}")
+        return False
+
+    
+
 def init_driver():
     global driver
     if not driver:
@@ -67,7 +93,10 @@ def init_driver():
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument("--disable-infobars")
         options.add_argument("--start-maximized")
-
+        options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_argument("--disable-extensions")
+        options.add_argument("--disable-popup-blocking")
+        options.add_argument("--disable-infobars")
         # Random user-agent
         user_agents = [
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36",
@@ -163,6 +192,7 @@ def get_job():
         
         for url in cfg["indeed_data"]["url"]:
             try:
+                print(f"🎯 appling for position at joob  {url}")
                 driver.get(url)
                 random_delay(2, 3)
                 
