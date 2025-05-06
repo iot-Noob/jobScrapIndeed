@@ -9,13 +9,10 @@ import time
 import toml
 import os
 import sys
-driver = None  # Global singleton
+driver=None
 found = False
 mp = ""
-user_agents = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0 Safari/537.36"
-]
+
 try:
     # Search for the first .toml file
     for root, _, files in os.walk("./"):
@@ -55,53 +52,44 @@ try:
         if not val or str(val).strip() == "":
             raise ValueError(f"Missing or empty '{key}' in [credentials] section")
 
-    print("✅ Config loaded and validated successfully in scrap!")
+    print("✅ Config loaded and validated successfully!")
 
 except Exception as e:
     print(f"❌ Failed to load or validate config.toml: {e}")
     sys.exit()
-    
 
-def get_driver():
+def init_driver():
     global driver
     if not driver:
+        # Configure undetected Chrome options
         options = uc.ChromeOptions()
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_argument("--disable-infobars")
         options.add_argument("--start-maximized")
-        
-        # Set random user agent
-        selected_ua = random.choice(user_agents)
-        options.add_argument(f'user-agent={selected_ua}')
-        
-        try:
-            driver = uc.Chrome(options=options)
-            # Set consistent window size with small random variation
-            base_width = 1440
-            base_height = 900
-            driver.set_window_size(
-                base_width + random.randint(-100, 100),
-                base_height + random.randint(-50, 50)
-            )
-            print("🚀 New browser instance created")
-        except Exception as e:
-            print(f"❌ Driver initialization failed: {e}")
-            raise
-    return driver
 
+        # Random user-agent
+        user_agents = [
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0 Safari/537.36"
+        ]
+        options.add_argument(f'user-agent={random.choice(user_agents)}')
+
+        # Launch undetected Chrome
+        driver = uc.Chrome(options=options)
+        driver.set_window_size(random.randint(1200, 1600), random.randint(800, 1000))
+        
 def cleanup_driver():
     global driver
     if driver:
         try:
             driver.quit()
-            print("🛑 Browser closed properly")
+            print("🛑 Browser closed")
         except Exception as e:
             print(f"⚠️ Error closing browser: {e}")
         finally:
             driver = None
- 
-
-
+            
 def random_delay(min_time=1.5, max_time=4.0):
     time.sleep(random.uniform(min_time, max_time))
 
@@ -109,9 +97,6 @@ actions = ActionChains(driver)
 
 def get_job_data():
     try:
-        global driver
-        if not driver:
-            get_driver()
         # Wait for job results to load
         WebDriverWait(driver, 15).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "div[data-testid='slider_item']"))
@@ -125,9 +110,12 @@ def get_job_data():
         job_list = []
         for index, job in enumerate(jobs):
             try:
+                # Create new ActionChains instance for each interaction
+                actions = ActionChains(driver)
+                
                 # Human-like interaction pattern
                 if index % 3 == 0:
-                    actions.move_to_element(job).perform()
+                    actions.move_to_element(job).pause(random.uniform(0.2, 0.5)).perform()
                     random_delay(0.2, 0.5)
 
                 # Extract job details
@@ -170,14 +158,38 @@ def get_job_data():
 
 def get_job():
     try:
-        global driver
-        get_driver()  # Initialize driver first
-        all_jobs = []
+        init_driver()
+        job_list = []
+        
         for url in cfg["indeed_data"]["url"]:
-            driver.get(url)  # Now driver is guaranteed to exist
-            all_jobs.extend(get_job_data())
-        return all_jobs
+            try:
+                driver.get(url)
+                random_delay(2, 3)
+                
+                # Human-like scrolling pattern
+                for _ in range(random.randint(2, 4)):
+                    try:
+                        # Create new ActionChains for each scroll
+                        ActionChains(driver)\
+                            .scroll_by_amount(0, random.randint(300, 800))\
+                            .pause(random.uniform(0.8, 1.2))\
+                            .perform()
+                    except Exception as scroll_error:
+                        print(f"⚠️ Scrolling failed: {scroll_error}")
+                        continue
+                
+                # Scrape jobs
+                jobs = get_job_data()
+                job_list.extend(jobs)
+
+            except Exception as page_error:
+                print(f"⚠️ Error processing URL {url}: {page_error}")
+                continue
+
+        return job_list
+    
     finally:
+        cleanup_driver()
         time.sleep(random.randint(2, 5))
-        cleanup_driver()  # Already handles quitting
+        
  

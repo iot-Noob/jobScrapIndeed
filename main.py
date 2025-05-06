@@ -1,4 +1,4 @@
-from scrap_ucdv2 import get_job,cleanup_driver
+from scrap_ucdv2 import get_job
 import schedule
 import toml
 import sys
@@ -78,18 +78,17 @@ def main_job():
     </body>
     </html>
     """
-    for r in recipients:
-        send_mail(recipient_email=r,subject="List of Python/AI/ML ReactJS  Job Opportunities in Lahore",body=email_body)
-if __name__=="__main__":
-    try:
-        schedule.every(1).minute.do(main_job)
+    # for r in recipients:
+    #     send_mail(recipient_email=r,subject="List of Python/AI/ML ReactJS  Job Opportunities in Lahore",body=email_body)
+# if __name__=="__main__":
+#     try:
+#         schedule.every(1).second.do(main_job)
 
-        # Keep the script running
-        while True:
-            schedule.run_pending()
-            time.sleep(60)  # Check every minute
-        pass
-    except Exception as e:
-        cleanup_driver()
-        print(f"Error occur {e}")
+#         # Keep the script running
+#         while True:
+#             schedule.run_pending()
+#             time.sleep(60)  # Check every minute
+#         pass
+#     except Exception as e:
+#         print(f"Error occur {e}")
  
