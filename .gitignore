@@ -5,3 +5,5 @@
 *.exe
 test.py
 t2.py
+*.log
+ 
