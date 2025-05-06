@@ -6,7 +6,7 @@ import os
 import re
 from email_sender import MailSender
 import time
-
+from main_logging import logging_func,logging
 try:
     # Search for the first .toml file
     for root, _, files in os.walk("./"):
@@ -40,7 +40,7 @@ except Exception as e:
     print(f"❌ Failed to load or validate config.toml: {e}")
     sys.exit()
 
-
+@logging_func
 
 def main_job():
     sj=WebScraper()
@@ -84,7 +84,7 @@ def main_job():
         ms.send_mail(recipient_email=r,subject="List of Python/AI/ML ReactJS  Job Opportunities in Lahore",body=email_body)
 if __name__=="__main__":
     try:
-        schedule.every(6).hours.do(main_job)
+        schedule.every(1).minute.do(main_job)
 
         # Keep the script running
         while True:

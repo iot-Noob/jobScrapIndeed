@@ -10,7 +10,7 @@ import time
 import toml
 import os
 import sys
-
+from main_logging import logging_func,logging
 class WebScraper:
     def __init__(self):
         self.driver = None
@@ -24,7 +24,7 @@ class WebScraper:
  
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.cleanup_driver()
-
+    @logging_func
     def init_configs(self):
         try:
             for root, _, files in os.walk("./"):
@@ -61,11 +61,11 @@ class WebScraper:
                     raise ValueError(f"Missing or empty '{key}' in [credentials] section")
 
             print("✅ Config loaded and validated successfully!")
-
+            logging.info("config load sucess ✅")
         except Exception as e:
             print(f"❌ Failed to load or validate config.toml: {e}")
             sys.exit()
-
+    @logging_func
     def init_driver(self):
         if not self.driver:
             options = uc.ChromeOptions()
@@ -84,7 +84,7 @@ class WebScraper:
 
             self.driver = uc.Chrome(options=options)
             self.driver.set_window_size(random.randint(1200, 1600), random.randint(800, 1000))
-
+    @logging_func
     def cleanup_driver(self):
         if self.driver:
             try:
@@ -119,7 +119,7 @@ class WebScraper:
         except Exception as e:
             print(f"CAPTCHA handling failed: {e}")
             return False
-
+    @logging_func
     def get_job_data(self):
         try:
             WebDriverWait(self.driver, 15).until(
@@ -171,7 +171,7 @@ class WebScraper:
         except Exception as e:
             print(f"🔥 Error in job scraping: {str(e)}")
             return []
-
+    @logging_func
     def get_jobs(self):
         try:
             self.init_driver()
