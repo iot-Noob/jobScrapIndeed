@@ -8,47 +8,52 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv(interpolate=True, override=True)
 
-def get_email_config():
-    try:
-        email = os.getenv("email")
-        password = os.getenv("password")
-        smtp_server = os.getenv("smtp_server")
-        port = os.getenv("port")
 
-        if not email:
-            raise ValueError("❌ email is missing in .env")
-        if not password:
-            raise ValueError("❌ password is missing in .env")
-        if not smtp_server:
-            raise ValueError("❌ smtp_server is missing in .env")
-        if not port:
-            raise ValueError("❌ port is missing in .env")
+class MailSender:
+    def __init__(self):
+           self.email = os.getenv("email")
+           self.password = os.getenv("password")
+           self.smtp_server = os.getenv("smtp_server")
+           self.port = os.getenv("port")
+           self.get_email_config()
+ 
+    def get_email_config(self):
+        try:
 
-        return email, password, smtp_server, int(port)
+            if not self.email:
+                raise ValueError("❌ email is missing in .env")
+            if not self.password:
+                raise ValueError("❌ password is missing in .env")
+            if not self.smtp_server:
+                raise ValueError("❌ smtp_server is missing in .env")
+            if not self.port:
+                raise ValueError("❌ port is missing in .env")
 
-    except Exception as e:
-        print(f"⚠️ Error loading config: {e}")
-        exit()
+            return self.email, self.password, self.smtp_server, int(self.port)
 
-def send_mail(recipient_email, subject, body):
-    email, password, smtp_server, port = get_email_config()
+        except Exception as e:
+            print(f"⚠️ Error loading config: {e}")
+            exit()
 
-    # Create a MIME multipart message
-    message = MIMEMultipart("alternative")
-    message["Subject"] = subject
-    message["From"] = email
-    message["To"] = recipient_email
-    message["Date"] = formatdate(localtime=True)
+    def send_mail(self,recipient_email, subject, body):
+        email, password, smtp_server, port = self.get_email_config()
 
-    # Add HTML body
-    html_part = MIMEText(body, "html")
-    message.attach(html_part)
+        # Create a MIME multipart message
+        message = MIMEMultipart("alternative")
+        message["Subject"] = subject
+        message["From"] = email
+        message["To"] = recipient_email
+        message["Date"] = formatdate(localtime=True)
 
-    try:
-        with smtplib.SMTP(smtp_server, port) as server:
-            server.starttls()
-            server.login(email, password)
-            server.sendmail(email, recipient_email, message.as_string())
-        print("✅ Email sent successfully!")
-    except Exception as e:
-        print(f"❌ Error sending email: {e}")
+        # Add HTML body
+        html_part = MIMEText(body, "html")
+        message.attach(html_part)
+
+        try:
+            with smtplib.SMTP(smtp_server, port) as server:
+                server.starttls()
+                server.login(email, password)
+                server.sendmail(email, recipient_email, message.as_string())
+            print("✅ Email sent successfully!")
+        except Exception as e:
+            print(f"❌ Error sending email: {e}")
