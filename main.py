@@ -84,7 +84,7 @@ def main_job():
         ms.send_mail(recipient_email=r,subject="List of Python/AI/ML ReactJS  Job Opportunities in Lahore",body=email_body)
 if __name__=="__main__":
     try:
-        schedule.every(1).minute.do(main_job)
+        schedule.every(6).hours.do(main_job)
 
         # Keep the script running
         while True:
