@@ -1,4 +1,4 @@
-from scrap_ucdv2 import get_job
+from scrap_ucdv2 import  WebScraper
 import schedule
 import toml
 import sys
@@ -43,7 +43,8 @@ except Exception as e:
 
 
 def main_job():
-    jlist=get_job()
+    sj=WebScraper()
+    jlist=sj.get_jobs()
     email_body = """
     <html>
     <head></head>
@@ -80,16 +81,16 @@ def main_job():
     """
     for r in recipients:
         send_mail(recipient_email=r,subject="List of Python/AI/ML ReactJS  Job Opportunities in Lahore",body=email_body)
-# if __name__=="__main__":
-#     try:
-#         schedule.every(1).hours.do(main_job)
+if __name__=="__main__":
+    try:
+        schedule.every(1).minute.do(main_job)
 
-#         # Keep the script running
-#         while True:
-#             schedule.run_pending()
-#             time.sleep(60)  # Check every minute
-#         pass
-#     except Exception as e:
+        # Keep the script running
+        while True:
+            schedule.run_pending()
+            time.sleep(20)  # Check every minute
+        pass
+    except Exception as e:
        
-#         print(f"Error occur {e}")
-main_job()
+        print(f"Error occur {e}")
+ 
