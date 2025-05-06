@@ -93,7 +93,6 @@ def init_driver():
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument("--disable-infobars")
         options.add_argument("--start-maximized")
-        options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument("--disable-extensions")
         options.add_argument("--disable-popup-blocking")
         options.add_argument("--disable-infobars")
