@@ -1,0 +1,95 @@
+from scrap_ucdv2 import get_job,cleanup_driver
+import schedule
+import toml
+import sys
+import os
+import re
+from email_sender import send_mail
+import time
+
+try:
+    # Search for the first .toml file
+    for root, _, files in os.walk("./"):
+        for f in files:
+            if f.endswith(".toml"):
+                found = True
+                mp = os.path.join(root, f)
+                break
+        if found:
+            break
+
+    if not found:
+        print("Error: Cannot find config.toml. Please make a config.toml in the same directory.")
+        sys.exit(1)
+
+    # Load TOML file
+    with open(mp, "r") as f:
+        cfg = toml.load(f)
+
+        if "email-config" not in cfg or "recipient" not in cfg["email-config"]:
+            raise ValueError("Missing 'recipient' in [email-config] section of config.toml")
+        email_pattern = re.compile(r"[^@]+@[^@]+\.[^@]+")
+
+        recipients = cfg["email-config"]["recipient"]
+        if not isinstance(recipients, list) or not all(isinstance(email, str) and email_pattern.match(email) for email in recipients):
+            raise ValueError("Each recipient must be a valid email address string in the [email-config] section")
+    print("✅ Config loaded and validated successfully in main!")
+
+
+except Exception as e:
+    print(f"❌ Failed to load or validate config.toml: {e}")
+    sys.exit()
+
+
+
+def main_job():
+    jlist=get_job()
+    email_body = """
+    <html>
+    <head></head>
+    <body style="font-family: Arial, sans-serif; font-size: 16px; color: #212529; margin: 0; padding: 20px; background-color: #f8f9fa;">
+    <div style="max-width: 700px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 6px; box-shadow: 0 0 10px rgba(0,0,0,0.05);">
+        <h2 style="color: #007bff; margin-bottom: 20px;">Python, AI, and Data Science Jobs in Lahore</h2>
+        <p style="margin-top: 0;">Dear Candidate,</p>
+
+        <p>Please find below a curated list of recent <strong>Python</strong>, <strong>AI</strong>, and <strong>Data Science</strong> job/internship opportunities available in <strong>Lahore</strong>:</p>
+    """
+
+    for i, job in enumerate(jlist, 1):
+        email_body += f"""
+        <div style="margin-bottom: 25px; padding: 20px; border: 1px solid #dee2e6; border-radius: 5px; background-color: #fefefe;">
+        <h4 style="margin-top: 0; margin-bottom: 5px; font-size: 18px;">
+            <a href="{job['url']}" target="_blank" style="color: #007bff; text-decoration: none;">
+            {i}. {job['title']}
+            </a>
+        </h4>
+        <div style="font-style: italic; color: #6c757d; margin-bottom: 10px;">at {job['company']}</div>
+        <ul style="list-style: none; padding-left: 0; margin: 0;">
+            <li><strong>Location:</strong> {job['location']}</li>
+            <li><strong>Salary:</strong> {job['salary']}</li>
+            <li><strong>Description:</strong> {job['description']}</li>
+        </ul>
+        </div>
+        """
+
+    email_body += """
+        <p style="margin-top: 40px;">Best regards,<br>Talha Automated Job Hunter</p>
+    </div>
+    </body>
+    </html>
+    """
+    for r in recipients:
+        send_mail(recipient_email=r,subject="List of Python/AI/ML ReactJS  Job Opportunities in Lahore",body=email_body)
+if __name__=="__main__":
+    try:
+        schedule.every(1).minute.do(main_job)
+
+        # Keep the script running
+        while True:
+            schedule.run_pending()
+            time.sleep(60)  # Check every minute
+        pass
+    except Exception as e:
+        cleanup_driver()
+        print(f"Error occur {e}")
+ 
