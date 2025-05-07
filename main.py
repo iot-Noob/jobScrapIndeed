@@ -7,6 +7,7 @@ import re
 from email_sender import MailSender
 import time
 from main_logging import logging_func,logging
+from datetime import datetime
 try:
     # Search for the first .toml file
     for root, _, files in os.walk("./"):
@@ -84,8 +85,13 @@ def main_job():
         ms.send_mail(recipient_email=r,subject="List of Python/AI/ML ReactJS  Job Opportunities in Lahore",body=email_body)
 if __name__=="__main__":
     try:
-        schedule.every(6).hours.do(main_job)
-
+        schedule.every().day.at("9:00").do(main_job)  # 6 PM
+        schedule.every().day.at("12:00").do(main_job)  # 6 PM
+        schedule.every().day.at("15:00").do(main_job)  # 6 PM
+        schedule.every().day.at("18:00").do(main_job)  # 6 PM
+        schedule.every().day.at("20:00").do(main_job)  # 8 PM
+        schedule.every().day.at("22:00").do(main_job)  # 10 PM
+        schedule.every().day.at("00:00").do(main_job)  # 12 PM
         # Keep the script running
         while True:
             schedule.run_pending()
