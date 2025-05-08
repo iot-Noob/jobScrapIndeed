@@ -65,42 +65,53 @@ def main_job():
         <p>Please find below a curated list of recent <strong>Python</strong>, <strong>AI</strong>, and <strong>Data Science</strong> job/internship opportunities available in <strong>Lahore</strong>:</p>
     """
     for jdata in sj.get_jobs():
-        for i, job in enumerate(jdata, 1):
-            all_jobs.append(job)
-            email_body += f"""
-            <div style="margin-bottom: 25px; padding: 20px; border: 1px solid #dee2e6; border-radius: 5px; background-color: #fefefe;">
-            <h4 style="margin-top: 0; margin-bottom: 5px; font-size: 18px;">
-                <a href="{job['url']}" target="_blank" style="color: #007bff; text-decoration: none;">
-                {i}. {job['title']}
-                </a>
-            </h4>
-            <div style="font-style: italic; color: #6c757d; margin-bottom: 10px;">at {job['company']}</div>
-            <ul style="list-style: none; padding-left: 0; margin: 0;">
-                <li><strong>Location:</strong> {job['location']}</li>
-                <li><strong>Salary:</strong> {job['salary']}</li>
-                <li><strong>Description:</strong> {job['description']}</li>
-            </ul>
-            </div>
-            """
+        if not jdata:
+            print("no job found!! ")
+            logging.info("no job found")
+            continue
+        else:
+            for i, job in enumerate(jdata, 1):
+                if not job:
+                    print("no jobs")
+                    logging.info("no job found")
+                    continue
+                else:
+                    all_jobs.append(job)
+                    email_body += f"""
+                    <div style="margin-bottom: 25px; padding: 20px; border: 1px solid #dee2e6; border-radius: 5px; background-color: #fefefe;">
+                    <h4 style="margin-top: 0; margin-bottom: 5px; font-size: 18px;">
+                        <a href="{job['url']}" target="_blank" style="color: #007bff; text-decoration: none;">
+                        {i}. {job['title']}
+                        </a>
+                    </h4>
+                    <div style="font-style: italic; color: #6c757d; margin-bottom: 10px;">at {job['company']}</div>
+                    <ul style="list-style: none; padding-left: 0; margin: 0;">
+                        <li><strong>Location:</strong> {job['location']}</li>
+                        <li><strong>Salary:</strong> {job['salary']}</li>
+                        <li><strong>Description:</strong> {job['description']}</li>
+                    </ul>
+                    </div>
+                    """
 
-        email_body += """
-            <p style="margin-top: 40px;">Best regards,<br>Talha Automated Job Hunter</p>
-        </div>
-        </body>
-        </html>
-        """
-        ms=MailSender()
-    for r in recipients:
-        ms.send_mail(recipient_email=r,subject="List of Python/AI/ML ReactJS  Job Opportunities in Lahore",body=email_body)
-    if all_jobs:
-        df = pd.DataFrame(all_jobs)
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        output_file = f"{scdir}/job_listings_{timestamp}.csv"
-        df.to_csv(output_file, index=False, encoding='utf-8')
-        print(f"✅ Jobs saved to CSV: {output_file}")
-        all_jobs=[]
+                email_body += """
+                    <p style="margin-top: 40px;">Best regards,<br>Talha Automated Job Hunter</p>
+                </div>
+                </body>
+                </html>
+                """
+                ms=MailSender()
+                for r in recipients:
+                    ms.send_mail(recipient_email=r,subject="List of Python/AI/ML ReactJS  Job Opportunities in Lahore",body=email_body)
+                if all_jobs:
+                    df = pd.DataFrame(all_jobs)
+                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                    output_file = f"{scdir}/job_listings_{timestamp}.csv"
+                    df.to_csv(output_file, index=False, encoding='utf-8')
+                    print(f"✅ Jobs saved to CSV: {output_file}")
+                    all_jobs=[]
 if __name__=="__main__":
     try:
+ 
         schedule.every().day.at("09:00:00").do(main_job)
         schedule.every().day.at("12:00:00").do(main_job)
         schedule.every().day.at("15:00:00").do(main_job)
@@ -112,7 +123,7 @@ if __name__=="__main__":
         while True:
             schedule.run_pending()
             time.sleep(20)  # Check every minute
-        pass
+ 
     except Exception as e:
        
         print(f"Error occur {e}")
