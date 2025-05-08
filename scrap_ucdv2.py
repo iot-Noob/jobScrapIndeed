@@ -176,11 +176,10 @@ class WebScraper:
     @logging_func
     def get_jobs(self):
         try:
-            self.init_driver()
-         
-
+            self.init_driver() 
             for url in self.cfg["indeed_data"]["url"]:
                 try:
+                    self.handle_captcha()
                     print(f"🎯 Applying for position at job: {url}")
                     self.driver.get(url)
                     self.random_delay(2, 3)
