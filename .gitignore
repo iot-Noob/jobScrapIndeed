@@ -6,4 +6,7 @@
 test.py
 t2.py
 *.log
- 
+*.csv
+*.xls
+csv_dir/
+Scrap_volume/

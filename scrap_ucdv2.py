@@ -19,11 +19,13 @@ class WebScraper:
         self.mp = ""
         self.init_configs()
         self.init_driver()
+        
     def __del__(self):
         self.cleanup_driver()
  
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.cleanup_driver()
+    
     @logging_func
     def init_configs(self):
         try:
@@ -175,7 +177,7 @@ class WebScraper:
     def get_jobs(self):
         try:
             self.init_driver()
-            job_list = []
+         
 
             for url in self.cfg["indeed_data"]["url"]:
                 try:
@@ -194,13 +196,13 @@ class WebScraper:
                             continue
 
                     jobs = self.get_job_data()
-                    job_list.extend(jobs)
+                    yield jobs
 
                 except Exception as page_error:
                     print(f"⚠️ Error processing URL {url}: {page_error}")
                     continue
 
-            return job_list
+ 
 
         finally:
             self.cleanup_driver()
