@@ -49,66 +49,73 @@ except Exception as e:
 @logging_func
 
 def main_job():
-    all_jobs = []  # Collect jobs to save to CSV
-    sj=WebScraper()
-    scdir=cfg["output_paths"]["main_csv_path"]
-    if not os.path.exists(scdir):
-        os.makedirs(scdir, exist_ok=True)
-    email_body = """
-    <html>
-    <head></head>
-    <body style="font-family: Arial, sans-serif; font-size: 16px; color: #212529; margin: 0; padding: 20px; background-color: #f8f9fa;">
-    <div style="max-width: 700px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 6px; box-shadow: 0 0 10px rgba(0,0,0,0.05);">
-        <h2 style="color: #007bff; margin-bottom: 20px;">Python,React JS , AI, and Data Science Jobs in Lahore</h2>
-        <p style="margin-top: 0;">Dear Candidate,</p>
-
-        <p>Please find below a curated list of recent <strong>Python</strong>, <strong>AI</strong>, and <strong>Data Science</strong> job/internship opportunities available in <strong>Lahore</strong>:</p>
-    """
+    sj = WebScraper()
+    scdir = cfg["output_paths"]["main_csv_path"]
+    
+    # Create output directory if needed
+    os.makedirs(scdir, exist_ok=True)
+    
+    # Collect all jobs first
+    all_jobs = []
     for jdata in sj.get_jobs():
-        if not jdata:
-            print("no job found!! ")
-            logging.info("no job found")
-            continue
-        else:
-            for i, job in enumerate(jdata, 1):
-                if not job:
-                    print("no jobs")
-                    logging.info("no job found")
-                    continue
-                else:
-                    all_jobs.append(job)
-                    email_body += f"""
-                    <div style="margin-bottom: 25px; padding: 20px; border: 1px solid #dee2e6; border-radius: 5px; background-color: #fefefe;">
-                    <h4 style="margin-top: 0; margin-bottom: 5px; font-size: 18px;">
-                        <a href="{job['url']}" target="_blank" style="color: #007bff; text-decoration: none;">
-                        {i}. {job['title']}
-                        </a>
-                    </h4>
-                    <div style="font-style: italic; color: #6c757d; margin-bottom: 10px;">at {job['company']}</div>
-                    <ul style="list-style: none; padding-left: 0; margin: 0;">
-                        <li><strong>Location:</strong> {job['location']}</li>
-                        <li><strong>Salary:</strong> {job['salary']}</li>
-                        <li><strong>Description:</strong> {job['description']}</li>
-                    </ul>
-                    </div>
-                    """
+        all_jobs.extend(jdata)
+    
+    # Build email body only if jobs found
+    if all_jobs:
+        email_body = """
+        <html>
+        <head></head>
+        <body style="font-family: Arial, sans-serif; font-size: 16px; color: #212529; margin: 0; padding: 20px; background-color: #f8f9fa;">
+        <div style="max-width: 700px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 6px; box-shadow: 0 0 10px rgba(0,0,0,0.05);">
+            <h2 style="color: #007bff; margin-bottom: 20px;">Python,React JS , AI, and Data Science Jobs in Lahore</h2>
+            <p style="margin-top: 0;">Dear Candidate,</p>
+            <p>Please find below a curated list of recent <strong>Python</strong>, <strong>AI</strong>, and <strong>Data Science</strong> job/internship opportunities available in <strong>Lahore</strong>:</p>
+        """
 
-                email_body += """
-                    <p style="margin-top: 40px;">Best regards,<br>Talha Automated Job Hunter</p>
-                </div>
-                </body>
-                </html>
-                """
-                ms=MailSender()
-                for r in recipients:
-                    ms.send_mail(recipient_email=r,subject="List of Python/AI/ML ReactJS  Job Opportunities in Lahore",body=email_body)
-                if all_jobs:
-                    df = pd.DataFrame(all_jobs)
-                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                    output_file = f"{scdir}/job_listings_{timestamp}.csv"
-                    df.to_csv(output_file, index=False, encoding='utf-8')
-                    print(f"✅ Jobs saved to CSV: {output_file}")
-                    all_jobs=[]
+        # Add jobs to email body
+        for i, job in enumerate(all_jobs, 1):
+            email_body += f"""
+            <div style="margin-bottom: 25px; padding: 20px; border: 1px solid #dee2e6; border-radius: 5px; background-color: #fefefe;">
+            <h4 style="margin-top: 0; margin-bottom: 5px; font-size: 18px;">
+                <a href="{job['url']}" target="_blank" style="color: #007bff; text-decoration: none;">
+                {i}. {job['title']}
+                </a>
+            </h4>
+            <div style="font-style: italic; color: #6c757d; margin-bottom: 10px;">at {job['company']}</div>
+            <ul style="list-style: none; padding-left: 0; margin: 0;">
+                <li><strong>Location:</strong> {job['location']}</li>
+                <li><strong>Salary:</strong> {job['salary']}</li>
+                <li><strong>Description:</strong> {job['description']}</li>
+            </ul>
+            </div>
+            """
+
+        # Add closing to email body
+        email_body += """
+            <p style="margin-top: 40px;">Best regards,<br>Talha Automated Job Hunter</p>
+            </div>
+            </body>
+            </html>
+        """
+
+        # Send email once
+        ms = MailSender()
+        for r in recipients:
+            ms.send_mail(
+                recipient_email=r,
+                subject="List of Python/AI/ML ReactJS Job Opportunities in Lahore",
+                body=email_body
+            )
+
+        # Save CSV once
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        output_file = f"{scdir}/job_listings_{timestamp}.csv"
+        pd.DataFrame(all_jobs).to_csv(output_file, index=False, encoding='utf-8')
+        print(f"✅ Jobs saved to CSV: {output_file}")
+    else:
+        print("No jobs found in this run")
+        logging.info("No jobs found in this run")
+        
 if __name__=="__main__":
     try:
  
