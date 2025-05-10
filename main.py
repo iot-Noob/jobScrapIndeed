@@ -119,14 +119,14 @@ def main_job():
         
 if __name__=="__main__":
     try:
-        schedule.every(11).seconds.do(main_job)
-        # schedule.every().day.at("09:00:00").do(main_job)
-        # schedule.every().day.at("12:00:00").do(main_job)
-        # schedule.every().day.at("15:00:00").do(main_job)
-        # schedule.every().day.at("18:00:00").do(main_job)
-        # schedule.every().day.at("20:00:00").do(main_job)
-        # schedule.every().day.at("22:00:00").do(main_job)
-        # schedule.every().day.at("00:00:00").do(main_job)
+        
+        schedule.every().day.at("09:00:00").do(main_job)
+        schedule.every().day.at("12:00:00").do(main_job)
+        schedule.every().day.at("15:00:00").do(main_job)
+        schedule.every().day.at("18:00:00").do(main_job)
+        schedule.every().day.at("20:00:00").do(main_job)
+        schedule.every().day.at("22:00:00").do(main_job)
+        schedule.every().day.at("00:00:00").do(main_job)
         # Keep the script running
         while True:
             schedule.run_pending()
