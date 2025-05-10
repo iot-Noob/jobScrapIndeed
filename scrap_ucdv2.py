@@ -173,10 +173,12 @@ class WebScraper:
             print(f"🔥 Error in job scraping: {str(e)}")
             return []
     @logging_func
-    def get_jobs(self):
+    def get_jobs(self,*args):
         try:
             self.init_driver() 
-            for url in self.cfg["indeed_data"]["url"]:
+            urls = args[0] if len(args) == 1 and isinstance(args[0], list) else args
+            urls = urls if urls else self.cfg["indeed_data"]["url"]
+            for url in urls:
                 try:
                     self.handle_captcha()
                     print(f"🎯 Applying for position at job: {url}")
