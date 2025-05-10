@@ -58,7 +58,7 @@ def main_job():
     # Collect all jobs first
     all_jobs = []
     for jdata in sj.get_jobs():
-        all_jobs.extend(jdata)
+        all_jobs.append(jdata)
     
     # Build email body only if jobs found
     if all_jobs:
@@ -112,20 +112,21 @@ def main_job():
         output_file = f"{scdir}/job_listings_{timestamp}.csv"
         pd.DataFrame(all_jobs).to_csv(output_file, index=False, encoding='utf-8')
         print(f"✅ Jobs saved to CSV: {output_file}")
+        all_jobs=[]
     else:
         print("No jobs found in this run")
         logging.info("No jobs found in this run")
         
 if __name__=="__main__":
     try:
- 
-        schedule.every().day.at("09:00:00").do(main_job)
-        schedule.every().day.at("12:00:00").do(main_job)
-        schedule.every().day.at("15:00:00").do(main_job)
-        schedule.every().day.at("18:00:00").do(main_job)
-        schedule.every().day.at("20:00:00").do(main_job)
-        schedule.every().day.at("22:00:00").do(main_job)
-        schedule.every().day.at("00:00:00").do(main_job)
+        schedule.every(11).seconds.do(main_job)
+        # schedule.every().day.at("09:00:00").do(main_job)
+        # schedule.every().day.at("12:00:00").do(main_job)
+        # schedule.every().day.at("15:00:00").do(main_job)
+        # schedule.every().day.at("18:00:00").do(main_job)
+        # schedule.every().day.at("20:00:00").do(main_job)
+        # schedule.every().day.at("22:00:00").do(main_job)
+        # schedule.every().day.at("00:00:00").do(main_job)
         # Keep the script running
         while True:
             schedule.run_pending()

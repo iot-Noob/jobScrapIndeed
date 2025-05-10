@@ -131,7 +131,7 @@ class WebScraper:
             jobs = self.driver.find_elements(By.CSS_SELECTOR, "div[data-testid='slider_item']")
             print(f"🎯 Found {len(jobs)} job listings")
 
-            job_list = []
+    
             for index, job in enumerate(jobs):
                 try:
                     actions = ActionChains(self.driver)
@@ -153,22 +153,21 @@ class WebScraper:
                     description = "\n".join([item.text for item in description_items])
 
                     job_url = job.find_element(By.CSS_SELECTOR, "a[id^='job_']").get_attribute("href")
-
-                    job_list.append({
+                    yield {
                         "title": title,
                         "company": company,
                         "location": location,
                         "salary": salary,
                         "description": description,
                         "url": job_url
-                    })
-
+                    }
+           
                 except Exception as e:
                     print(f"⚠️ Error processing job {index + 1}: {str(e)}")
                     
                     continue
 
-            return job_list
+        
 
         except Exception as e:
             print(f"🔥 Error in job scraping: {str(e)}")
@@ -194,8 +193,8 @@ class WebScraper:
                             print(f"⚠️ Scrolling failed: {scroll_error}")
                             continue
 
-                    jobs = self.get_job_data()
-                    yield jobs
+                    for jd in self.get_job_data():
+                        yield jd
 
                 except Exception as page_error:
                     print(f"⚠️ Error processing URL {url}: {page_error}")
