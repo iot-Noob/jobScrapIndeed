@@ -120,13 +120,13 @@ def main_job():
 if __name__=="__main__":
     try:
         
-        schedule.every().day.at("09:00:00").do(main_job)
-        schedule.every().day.at("12:00:00").do(main_job)
-        schedule.every().day.at("15:00:00").do(main_job)
-        schedule.every().day.at("18:00:00").do(main_job)
-        schedule.every().day.at("20:00:00").do(main_job)
-        schedule.every().day.at("22:00:00").do(main_job)
-        schedule.every().day.at("00:00:00").do(main_job)
+        schedule.every().day.at("09:00:00").do(main_job) #9AM 
+        schedule.every().day.at("12:00:00").do(main_job) #12PM
+        schedule.every().day.at("15:00:00").do(main_job) #3PM
+        schedule.every().day.at("18:00:00").do(main_job) #6PM
+        schedule.every().day.at("20:00:00").do(main_job) #8PM
+        schedule.every().day.at("22:00:00").do(main_job) #10PM
+        schedule.every().day.at("00:00:00").do(main_job) #12AM
         # Keep the script running
         while True:
             schedule.run_pending()
