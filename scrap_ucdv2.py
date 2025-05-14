@@ -10,6 +10,8 @@ import time
 import toml
 import os
 import sys
+import pandas as pd
+
 from main_logging import logging_func,logging
 class WebScraper:
     def __init__(self):
@@ -17,6 +19,7 @@ class WebScraper:
         self.cfg = None
         self.found = False
         self.mp = ""
+        self.csv_path=None
         self.init_configs()
         self.init_driver()
         
@@ -61,7 +64,7 @@ class WebScraper:
                 val = self.cfg["credentials"].get(key)
                 if not val or str(val).strip() == "":
                     raise ValueError(f"Missing or empty '{key}' in [credentials] section")
-
+            self.csv_path=self.cfg["output_paths"]["main_csv_path"]
             print("✅ Config loaded and validated successfully!")
             logging.info("config load sucess ✅")
         except Exception as e:
@@ -104,7 +107,7 @@ class WebScraper:
 
     def random_delay(self, min_time=1.5, max_time=4.0):
         time.sleep(random.uniform(min_time, max_time))
-
+    @logging_func
     def handle_captcha(self):
         try:
             WebDriverWait(self.driver, 20).until(
@@ -121,6 +124,66 @@ class WebScraper:
         except Exception as e:
             print(f"CAPTCHA handling failed: {e}")
             return False
+    @logging_func
+    def load_data_csv(self):
+        if not self.csv_path or not os.path.exists(self.csv_path):
+            raise ValueError("❌ Error: path does not exist or is not set")
+
+        try:
+            for root, _, files in os.walk(self.csv_path):
+                for f in files:
+                    if f.lower().endswith(".csv"):
+                        yield os.path.join(root, f)
+        except Exception as e:
+            raise ValueError(f"❌ Error loading CSV files: {e}")
+
+    @logging_func
+    def get_combine_data(self):
+        try:
+            all_dfs = []
+            for csv_file in self.load_data_csv():
+                try:
+                    df = pd.read_csv(csv_file, on_bad_lines='skip')  # Skip malformed rows
+                    required_cols = ['title', 'company', 'location', 'description', 'url']
+                    if not all(col in df.columns for col in required_cols):
+                        print(f"⚠️ Skipping CSV with missing columns: {csv_file}")
+                        continue
+                    all_dfs.append(df)
+                except Exception as e:
+                    print(f"⚠️ Skipping corrupted CSV {csv_file}: {e}")
+                    continue
+
+            if not all_dfs:
+                print("⚠️ No valid CSV files found to combine.")
+                return pd.DataFrame()
+
+            ads = pd.concat(all_dfs, ignore_index=True)
+            ads.drop_duplicates(subset=['title', 'company', 'location', 'description', 'url'], inplace=True)
+            ads.dropna(inplace=True)
+
+            return ads
+        except Exception as e:
+            print(f"❌ Error occurred while loading dataset: {e}")
+            return pd.DataFrame()
+
+    # Find dublicate from all previous data and compatre ti with new scrap data
+    @logging_func
+    def check_duplicate(self,job, df_existing):
+        try:
+            # Create a unique identifier (tuple) for the job based on key fields
+            job_identifier = (
+                job["title"],
+                job["company"],
+                job["location"],
+                job["description"],
+                job["url"]
+            )
+            # Convert the DataFrame into a set of unique job identifiers (tuples)
+            df_existing_identifiers = set(df_existing[['title', 'company', 'location', 'description', 'url']].apply(tuple, axis=1))
+
+            return job_identifier in df_existing_identifiers
+        except Exception as e:
+            raise ValueError(f"Error find dublicate from csv to web scrap data due to {e}")
     @logging_func
     def get_job_data(self):
         try:
@@ -153,7 +216,7 @@ class WebScraper:
                     description = "\n".join([item.text for item in description_items])
 
                     job_url = job.find_element(By.CSS_SELECTOR, "a[id^='job_']").get_attribute("href")
-                    yield {
+                    mdata={
                         "title": title,
                         "company": company,
                         "location": location,
@@ -161,7 +224,14 @@ class WebScraper:
                         "description": description,
                         "url": job_url
                     }
-           
+                    if not os.listdir(self.csv_path) or self.csv_path is None:
+                        yield mdata
+                    else:
+                        gcd=self.get_combine_data()
+                        if not self.check_duplicate(mdata, gcd):
+                            yield mdata
+                        else:
+                            print(f"🛑 Duplicate skipped: {title} at {company}")
                 except Exception as e:
                     print(f"⚠️ Error processing job {index + 1}: {str(e)}")
                     
