@@ -1,0 +1,25 @@
+ 
+services:
+  selenium-indeed:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: job_scrap_indeed:latest
+    container_name: selenium-indeed-container
+    ports:
+      - "4444:4444"
+    volumes:
+      - ./:/app
+      - ./csv_dir:/app/csv_dir
+      - ./Scrap_volume:/app/Scrap_volume
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+      - 10.0.0.3
+    networks:
+      - selenium-net
+
+networks:
+  selenium-net:
+    external: true
+    name: a-class-bridge

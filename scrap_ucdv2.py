@@ -3,7 +3,8 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium_recaptcha_solver import RecaptchaSolver
+ 
+import selenium_recaptcha_solver
 import pickle
 import random
 import time
@@ -74,13 +75,14 @@ class WebScraper:
     def init_driver(self):
         if not self.driver:
             options = uc.ChromeOptions()
+            options.add_argument("--headless=new")  # Crucial for Docker (use "--headless" if "--headless=new" fails)
             options.add_argument("--no-sandbox")
+            options.add_argument("--disable-dev-shm-usage")
             options.add_argument("--disable-blink-features=AutomationControlled")
             options.add_argument("--disable-infobars")
             options.add_argument("--start-maximized")
             options.add_argument("--disable-extensions")
             options.add_argument("--disable-popup-blocking")
-
             user_agents = [
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36",
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0 Safari/537.36"
@@ -114,7 +116,7 @@ class WebScraper:
                 EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR, "iframe[title*='Cloudflare Challenge']"))
             )
 
-            solver = RecaptchaSolver(driver=self.driver)
+            solver = selenium_recaptcha_solver.RecaptchaSolver(driver=self.driver)
             solver.click_recaptcha_v2(
                 iframe=self.driver.find_element(By.CSS_SELECTOR, "iframe[title*='Cloudflare Challenge']")
             )

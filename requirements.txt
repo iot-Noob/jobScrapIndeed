@@ -1,0 +1,10 @@
+selenium 
+pandas 
+python-dotenv 
+schedule 
+undetected-chromedriver
+selenium-recaptcha-solver
+toml 
+pydub
+speechrecognition
+2captcha-python
