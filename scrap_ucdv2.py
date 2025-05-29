@@ -21,10 +21,12 @@ class WebScraper:
         self.init_driver()
         
     def __del__(self):
-        self.cleanup_driver()
+        if self.driver:
+            self.cleanup_driver()
  
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.cleanup_driver()
+        if self.driver:
+            self.cleanup_driver()
     
     @logging_func
     def init_configs(self):
@@ -84,23 +86,27 @@ class WebScraper:
             ]
             options.add_argument(f'user-agent={random.choice(user_agents)}')
 
-            self.driver = uc.Chrome(options=options)
+            self.driver = uc.Chrome(options=options,version_main=136)
             self.driver.set_window_size(random.randint(1200, 1600), random.randint(800, 1000))
     @logging_func
     def cleanup_driver(self):
         if self.driver:
             try:
                 if hasattr(self.driver, 'quit'):
-                    self.driver.quit()
-                    print("🛑 Browser closed")
-            except Exception as e:
-                print(f"⚠️ Error closing browser: {e}")
+                    try:
+                        self.driver.quit()
+                        print("🛑 Browser closed")
+                    except Exception as e:
+                        print(f"⚠️ Error on driver.quit(): {e}")
             finally:
                 try:
-                    self.driver.service.stop()  # Extra stop to ensure kill
-                except:
-                    pass
-                self.driver = None
+                    if hasattr(self.driver, 'service') and hasattr(self.driver.service, 'process'):
+                        if self.driver.service.process and self.driver.service.process.poll() is None:
+                            self.driver.service.stop()
+                except Exception as e:
+                    print(f"⚠️ Error on driver.service.stop(): {e}")
+            self.driver = None
+
 
     def random_delay(self, min_time=1.5, max_time=4.0):
         time.sleep(random.uniform(min_time, max_time))
